@@ -22,11 +22,22 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     const userCollection = client.db("briteScholars").collection("users");
+    const reviewCollection = client.db("briteScholars").collection("reviews");
 
     app.post("/users", async (req, res) => {
       const user = req.body;
-      // console.log({ user });
-      const result = await userCollection.insertOne(user);
+      const query = { email: user.email };
+      const isExists = await userCollection.findOne(query);
+      if (isExists) {
+        return res.send({ message: "User already exists", insertedId: null });
+      } else {
+        const result = await userCollection.insertOne(user);
+        res.send(result);
+      }
+    });
+
+    app.get("/reviews", async (req, res) => {
+      const result = await reviewCollection.find().toArray();
       res.send(result);
     });
   } finally {
